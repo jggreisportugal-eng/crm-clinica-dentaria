@@ -29,3 +29,17 @@ O schema que já as suporta está pronto (Etapas 3.1 `conversations` e 3.2
   endpoint que será criado na 3.3
 
 Assim que a VPS estiver disponível, retomar direto na Etapa 3.3.
+
+## Pontos de integração prontos para o N8N (Fase 6)
+
+Preparados com antecedência (Etapas 2.5 e 4.5), executáveis só via
+`service_role` (nunca por um utilizador autenticado comum):
+
+- **`POST /rest/v1/rpc/run_followup_checks`** — `{p_days_unanswered_lead?, p_days_stalled_budget?}`
+  → cria tarefas de follow-up para leads sem resposta e orçamentos parados.
+  Pensado para a Etapa 6.5/6.6 (disparo agendado via N8N ou pg_cron).
+- **`POST /rest/v1/rpc/get_tomorrow_appointments`** — sem parâmetros → lista
+  as consultas marcadas/confirmadas de amanhã (nome/telefone do paciente,
+  profissional). Pensado para a Etapa 6.4 (lembrete de consulta via
+  Chatwoot) — só falta o fluxo N8N em si, que também depende da
+  integração Chatwoot acima.
