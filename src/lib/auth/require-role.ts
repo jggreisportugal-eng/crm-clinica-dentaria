@@ -3,6 +3,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { UserRole } from './nav-config'
 
+interface Profile {
+  id: string
+  full_name: string | null
+  role: UserRole
+  active: boolean
+}
+
 // cache(): evita repetir a mesma query (user + perfil) quando o layout e a
 // página, dentro do mesmo pedido, chamam requireProfile()/requireRole().
 export const requireProfile = cache(async () => {
@@ -20,7 +27,7 @@ export const requireProfile = cache(async () => {
     .from('users')
     .select('id, full_name, role, active')
     .eq('id', user.id)
-    .single()
+    .single<Profile>()
 
   if (!profile) {
     redirect('/login')
