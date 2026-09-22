@@ -30,7 +30,23 @@ O schema que já as suporta está pronto (Etapas 3.1 `conversations` e 3.2
 
 Assim que a VPS estiver disponível, retomar direto na Etapa 3.3.
 
-## Pontos de integração prontos para o N8N (Fase 6)
+## Fase 6 — N8N (adiada inteira)
+
+Adiada em 2026-09-22: nenhuma instância N8N disponível ainda (mesma situação
+do Chatwoot — provavelmente vai ficar na mesma VPS). A Etapa 6.1 já pede
+para configurar a instância real, e quase toda a fase depende disso, então
+ficou toda para depois em vez de tentar preparar às cegas.
+
+- **Etapa 6.1** — Setup do ambiente N8N e autenticação com o CRM.
+- **Etapa 6.2** — Fluxo: novo lead → criar/atualizar paciente.
+- **Etapa 6.3** — Fluxo: novo lead de campanha → registar origem e UTM.
+- **Etapa 6.4** — Fluxo: lembrete de consulta (consulta amanhã).
+- **Etapa 6.5** — Fluxo: paciente não respondeu → tarefa de follow-up.
+- **Etapa 6.6** — Fluxo: orçamento enviado há X dias → nova tarefa comercial.
+- **Etapa 6.7** — Fluxo: paciente inativo → campanha de reativação.
+- **Etapa 6.8** — Fluxo: tratamento concluído → pós-atendimento.
+
+### Pontos de integração já prontos para quando o N8N existir
 
 Preparados com antecedência (Etapas 2.5 e 4.5), executáveis só via
 `service_role` (nunca por um utilizador autenticado comum):
@@ -43,3 +59,13 @@ Preparados com antecedência (Etapas 2.5 e 4.5), executáveis só via
   profissional). Pensado para a Etapa 6.4 (lembrete de consulta via
   Chatwoot) — só falta o fluxo N8N em si, que também depende da
   integração Chatwoot acima.
+
+### O que é preciso para retomar
+
+- URL/acesso à instância N8N
+- Credenciais de API do CRM para o N8N se autenticar (Etapa 6.1) — nesta
+  stack isso é a `service_role key` do Supabase (mesma usada nos dois RPCs
+  acima), guardada como credencial no N8N, nunca hardcoded num workflow
+- Para 6.4, 6.5, 6.7: depende também da integração Chatwoot (ver acima)
+
+Assim que N8N estiver disponível, retomar direto na Etapa 6.1.
