@@ -23,6 +23,11 @@ export function Kanban({ initialDeals }: { initialDeals: DealCard[] }) {
   const [error, setError] = useState<string | null>(null)
 
   async function moveDeal(dealId: string, stage: FunnelStage) {
+    // Etapa 7.4: captura opcional do motivo ao perder um negócio, para
+    // o relatório de motivos de perda ter algo além de "não capturado".
+    const lostReason =
+      stage === 'perdido' ? window.prompt('Motivo da perda (opcional):') : null
+
     const previous = deals
     setDeals((current) =>
       current.map((d) => (d.id === dealId ? { ...d, funnel_stage: stage } : d))
@@ -32,7 +37,10 @@ export function Kanban({ initialDeals }: { initialDeals: DealCard[] }) {
     const supabase = createClient()
     const { error } = await supabase
       .from('deals')
-      .update({ funnel_stage: stage })
+      .update({
+        funnel_stage: stage,
+        ...(stage === 'perdido' ? { lost_reason: lostReason || null } : {}),
+      })
       .eq('id', dealId)
 
     if (error) {

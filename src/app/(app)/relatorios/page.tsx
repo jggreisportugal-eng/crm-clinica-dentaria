@@ -20,6 +20,7 @@ export default async function RelatoriosPage() {
     { data: byAppointment },
     { data: byTreatment },
     { data: teamPerformance },
+    { data: dealsHealth },
   ] = await Promise.all([
     supabase
       .from('report_leads_by_origin')
@@ -34,6 +35,7 @@ export default async function RelatoriosPage() {
       .from('report_treatments_billing')
       .select('status, treatments_count, total_budget'),
     supabase.rpc('get_team_performance'),
+    supabase.rpc('get_deals_health'),
   ])
 
   const stageMap = new Map((byStage ?? []).map((s) => [s.funnel_stage, s]))
@@ -188,6 +190,95 @@ export default async function RelatoriosPage() {
                   <td className="py-2">{row.appointments_done}</td>
                 </tr>
               )
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-lg font-medium text-gray-900">
+          Motivos de perda
+        </h2>
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="py-2">Paciente</th>
+              <th className="py-2">Responsável</th>
+              <th className="py-2">Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(dealsHealth ?? [])
+              .filter((d: { funnel_stage: string }) => d.funnel_stage === 'perdido')
+              .map(
+                (d: {
+                  deal_id: string
+                  patient_name: string | null
+                  responsible_name: string | null
+                  lost_reason: string | null
+                }) => (
+                  <tr key={d.deal_id} className="border-b border-gray-100">
+                    <td className="py-2">{d.patient_name ?? '—'}</td>
+                    <td className="py-2">{d.responsible_name ?? '—'}</td>
+                    <td className="py-2 text-gray-500">
+                      {d.lost_reason ?? 'Não capturado'}
+                    </td>
+                  </tr>
+                )
+              )}
+            {(dealsHealth ?? []).filter(
+              (d: { funnel_stage: string }) => d.funnel_stage === 'perdido'
+            ).length === 0 && (
+              <tr>
+                <td colSpan={3} className="py-4 text-center text-gray-400">
+                  Sem negócios perdidos.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-lg font-medium text-gray-900">
+          Oportunidades paradas (7+ dias sem atualização)
+        </h2>
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="py-2">Paciente</th>
+              <th className="py-2">Etapa</th>
+              <th className="py-2">Responsável</th>
+              <th className="py-2">Dias parado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(dealsHealth ?? [])
+              .filter((d: { funnel_stage: string }) => d.funnel_stage !== 'perdido')
+              .map(
+                (d: {
+                  deal_id: string
+                  patient_name: string | null
+                  funnel_stage: keyof typeof FUNNEL_STAGE_LABELS
+                  responsible_name: string | null
+                  days_since_update: number
+                }) => (
+                  <tr key={d.deal_id} className="border-b border-gray-100">
+                    <td className="py-2">{d.patient_name ?? '—'}</td>
+                    <td className="py-2">{FUNNEL_STAGE_LABELS[d.funnel_stage]}</td>
+                    <td className="py-2">{d.responsible_name ?? '—'}</td>
+                    <td className="py-2">{d.days_since_update}</td>
+                  </tr>
+                )
+              )}
+            {(dealsHealth ?? []).filter(
+              (d: { funnel_stage: string }) => d.funnel_stage !== 'perdido'
+            ).length === 0 && (
+              <tr>
+                <td colSpan={4} className="py-4 text-center text-gray-400">
+                  Sem oportunidades paradas.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
