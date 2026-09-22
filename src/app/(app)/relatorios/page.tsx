@@ -14,21 +14,27 @@ export default async function RelatoriosPage() {
 
   const supabase = await createClient()
 
-  const [{ data: byOrigin }, { data: byStage }, { data: byAppointment }, { data: byTreatment }] =
-    await Promise.all([
-      supabase
-        .from('report_leads_by_origin')
-        .select('origin, total_leads, converted_leads, conversion_rate_pct'),
-      supabase
-        .from('report_funnel_conversion')
-        .select('funnel_stage, deals_count, total_value'),
-      supabase
-        .from('report_appointments_summary')
-        .select('status, appointments_count'),
-      supabase
-        .from('report_treatments_billing')
-        .select('status, treatments_count, total_budget'),
-    ])
+  const [
+    { data: byOrigin },
+    { data: byStage },
+    { data: byAppointment },
+    { data: byTreatment },
+    { data: teamPerformance },
+  ] = await Promise.all([
+    supabase
+      .from('report_leads_by_origin')
+      .select('origin, total_leads, converted_leads, conversion_rate_pct'),
+    supabase
+      .from('report_funnel_conversion')
+      .select('funnel_stage, deals_count, total_value'),
+    supabase
+      .from('report_appointments_summary')
+      .select('status, appointments_count'),
+    supabase
+      .from('report_treatments_billing')
+      .select('status, treatments_count, total_budget'),
+    supabase.rpc('get_team_performance'),
+  ])
 
   const stageMap = new Map((byStage ?? []).map((s) => [s.funnel_stage, s]))
   const appointmentMap = new Map((byAppointment ?? []).map((a) => [a.status, a]))
@@ -149,6 +155,40 @@ export default async function RelatoriosPage() {
                 </tr>
               )
             })}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-lg font-medium text-gray-900">
+          Desempenho por profissional/equipa
+        </h2>
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="py-2">Utilizador</th>
+              <th className="py-2">Perfil</th>
+              <th className="py-2">Deals fechados</th>
+              <th className="py-2">Consultas realizadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(teamPerformance ?? []).map(
+              (row: {
+                user_id: string
+                full_name: string | null
+                role: string
+                deals_closed: number
+                appointments_done: number
+              }) => (
+                <tr key={row.user_id} className="border-b border-gray-100">
+                  <td className="py-2">{row.full_name ?? '—'}</td>
+                  <td className="py-2">{row.role}</td>
+                  <td className="py-2">{row.deals_closed}</td>
+                  <td className="py-2">{row.appointments_done}</td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </section>
