@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+export default function OnboardingPage() {
   const router = useRouter()
+  const [organizationName, setOrganizationName] = useState('')
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -16,16 +18,29 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
+    const res = await fetch('/api/onboarding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ organizationName, fullName, email, password }),
+    })
+    const body = await res.json()
+
+    if (!res.ok) {
+      setLoading(false)
+      setError(body.error ?? 'Não foi possível criar a organização.')
+      return
+    }
+
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     setLoading(false)
 
-    if (error) {
-      setError(error.message)
+    if (signInError) {
+      setError(signInError.message)
       return
     }
 
@@ -40,16 +55,37 @@ export default function LoginPage() {
         className="w-full max-w-sm space-y-4 rounded-lg border border-gray-200 bg-white p-8 shadow-sm"
       >
         <h1 className="text-xl font-semibold text-gray-900">
-          CRM Clínica Dentária
+          Criar a sua clínica no CRM
         </h1>
-        <p className="text-sm text-gray-500">Entrar na sua conta</p>
+        <p className="text-sm text-gray-500">
+          Cria uma nova organização e a sua conta de Administrador.
+        </p>
 
         <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            E-mail
+          <label className="text-sm font-medium text-gray-700">
+            Nome da clínica
           </label>
           <input
-            id="email"
+            required
+            value={organizationName}
+            onChange={(e) => setOrganizationName(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">O seu nome</label>
+          <input
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">E-mail</label>
+          <input
             type="email"
             required
             value={email}
@@ -59,16 +95,13 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-1">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium text-gray-700"
-          >
+          <label className="text-sm font-medium text-gray-700">
             Palavra-passe
           </label>
           <input
-            id="password"
             type="password"
             required
+            minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -82,13 +115,13 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {loading ? 'A entrar…' : 'Entrar'}
+          {loading ? 'A criar…' : 'Criar clínica'}
         </button>
 
         <p className="text-center text-sm text-gray-500">
-          Ainda não tem uma clínica registada?{' '}
-          <a href="/onboarding" className="underline">
-            Criar clínica
+          Já tem conta?{' '}
+          <a href="/login" className="underline">
+            Entrar
           </a>
         </p>
       </form>
