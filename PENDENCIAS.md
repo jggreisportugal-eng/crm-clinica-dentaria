@@ -51,13 +51,18 @@ ficou toda para depois em vez de tentar preparar às cegas.
 Preparados com antecedência (Etapas 2.5 e 4.5), executáveis só via
 `service_role` (nunca por um utilizador autenticado comum):
 
-- **`POST /rest/v1/rpc/run_followup_checks`** — `{p_days_unanswered_lead?, p_days_stalled_budget?}`
+Desde a Etapa 8.2 (multi-clínica), ambas exigem `p_organization_id`
+explícito — chamadas por service_role, sem sessão de utilizador, então não
+há como inferir a organização sozinhas. O workflow N8N de cada clínica
+passa o `organization_id` dela própria.
+
+- **`POST /rest/v1/rpc/run_followup_checks`** — `{p_organization_id, p_days_unanswered_lead?, p_days_stalled_budget?}`
   → cria tarefas de follow-up para leads sem resposta e orçamentos parados.
   Pensado para a Etapa 6.5/6.6 (disparo agendado via N8N ou pg_cron).
-- **`POST /rest/v1/rpc/get_tomorrow_appointments`** — sem parâmetros → lista
-  as consultas marcadas/confirmadas de amanhã (nome/telefone do paciente,
-  profissional). Pensado para a Etapa 6.4 (lembrete de consulta via
-  Chatwoot) — só falta o fluxo N8N em si, que também depende da
+- **`POST /rest/v1/rpc/get_tomorrow_appointments`** — `{p_organization_id}`
+  → lista as consultas marcadas/confirmadas de amanhã (nome/telefone do
+  paciente, profissional). Pensado para a Etapa 6.4 (lembrete de consulta
+  via Chatwoot) — só falta o fluxo N8N em si, que também depende da
   integração Chatwoot acima.
 
 ### O que é preciso para retomar
