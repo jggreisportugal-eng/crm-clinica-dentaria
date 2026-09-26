@@ -75,7 +75,10 @@ export async function POST(request: Request) {
 
   if (userError) {
     // Reverte a organização criada — sem primeiro administrador, a
-    // organização fica órfã e inacessível.
+    // organização fica órfã e inacessível. O funil default e o registo de
+    // auditoria criados pelos triggers referenciam-na, por isso saem antes.
+    await supabase.from('activities').delete().eq('organization_id', organization.id)
+    await supabase.from('pipelines').delete().eq('organization_id', organization.id)
     await supabase.from('organizations').delete().eq('id', organization.id)
     return NextResponse.json(
       { error: `Não foi possível criar o utilizador: ${userError.message}` },
