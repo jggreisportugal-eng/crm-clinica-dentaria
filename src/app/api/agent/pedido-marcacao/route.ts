@@ -13,6 +13,15 @@ const TASK_TITLE = 'Pedido de marcação'
 const MERGE_WINDOW_HOURS = 24
 const DUE_IN_HOURS = 2
 
+function firstName(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)[0]
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+}
+
 // Ferramenta registar_pedido_marcacao: o agente não marca consultas — deixa
 // um pedido para a receção (tarefa) com o que o paciente confirmou, e o
 // negócio avança de "Novo lead" para "Contactado".
@@ -60,20 +69,28 @@ export async function POST(request: Request) {
     )
   }
 
-  // O paciente criado pelo webhook tem o nome do perfil do WhatsApp (ou o
-  // telefone); o nome confirmado na conversa substitui-o nesses casos.
-  const placeholderName =
-    patient.full_name === patient.phone ||
-    patient.full_name === 'Contacto Chatwoot' ||
-    (identity.contactName != null && patient.full_name === identity.contactName)
-  await ctx.supabase
-    .from('patients')
-    .update({
-      ...(placeholderName ? { full_name: nome } : {}),
-      ...(patient.interest ? {} : { interest: tratamento }),
-    })
-    .eq('id', patient.id)
-    .eq('organization_id', ctx.organizationId)
+  // O pedido pode ser para outra pessoa (um filho, o cônjuge) a escrever do
+  // mesmo WhatsApp: nesse caso a ficha do contacto não é tocada e a tarefa
+  // diz para quem é. É a mesma pessoa se o primeiro nome coincide ou se a
+  // ficha ainda não tem nome (só o telefone).
+  const unnamed =
+    patient.full_name === patient.phone || patient.full_name === 'Contacto Chatwoot'
+  const samePerson = unnamed || firstName(patient.full_name) === firstName(nome)
+
+  if (samePerson) {
+    // O paciente criado pelo webhook tem o nome do perfil do WhatsApp (ou o
+    // telefone); o nome confirmado na conversa substitui-o.
+    const profileName =
+      unnamed || (identity.contactName != null && patient.full_name === identity.contactName)
+    await ctx.supabase
+      .from('patients')
+      .update({
+        ...(profileName ? { full_name: nome } : {}),
+        ...(patient.interest ? {} : { interest: tratamento }),
+      })
+      .eq('id', patient.id)
+      .eq('organization_id', ctx.organizationId)
+  }
 
   const { data: deal } = await ctx.supabase
     .from('deals')
@@ -94,6 +111,7 @@ export async function POST(request: Request) {
 
   const description = [
     `Nome indicado: ${nome}`,
+    !samePerson && `Pedido feito por: ${patient.full_name} (contacto desta conversa)`,
     `Tratamento: ${tratamento}`,
     `Preferência de dia/horário: ${preferencia}`,
     observacoes && `Observações: ${observacoes}`,
@@ -105,19 +123,24 @@ export async function POST(request: Request) {
     .join('\n')
 
   const since = new Date(Date.now() - MERGE_WINDOW_HOURS * 3600_000).toISOString()
-  const { data: pending } = await ctx.supabase
+  const { data: recent } = await ctx.supabase
     .from('tasks')
-    .select('id')
+    .select('id, description')
     .eq('organization_id', ctx.organizationId)
     .eq('patient_id', patient.id)
     .eq('status', 'pendente')
     .ilike('title', `${TASK_TITLE}%`)
     .gte('created_at', since)
     .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+    .limit(10)
 
-  const title = `${TASK_TITLE} — ${tratamento}`.slice(0, 200)
+  // Só atualiza o pedido pendente da MESMA pessoa (primeira linha da
+  // descrição); o pedido para um filho não substitui o do pai.
+  const pending = (recent ?? []).find(
+    (t) => firstName(t.description?.split('\n')[0]?.replace('Nome indicado:', '') ?? '') === firstName(nome)
+  )
+
+  const title = `${TASK_TITLE} — ${tratamento} — ${nome}`.slice(0, 200)
   const { error } = pending
     ? await ctx.supabase
         .from('tasks')
