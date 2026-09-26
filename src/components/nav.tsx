@@ -16,26 +16,32 @@ export function Nav({
   const items = NAV_ITEMS.filter((item) => item.roles.includes(role))
 
   return (
-    <nav className="sticky top-0 flex h-screen w-56 shrink-0 flex-col justify-between bg-brand-900 p-4 text-brand-100">
+    <nav className="z-10 flex shrink-0 flex-col bg-brand-900 text-brand-100 md:sticky md:top-0 md:h-screen md:w-60 md:justify-between md:p-4">
       <div>
-        <p className="mb-6 flex items-center gap-2 px-2 text-base font-semibold text-white">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-500 text-sm font-bold text-brand-950">
-            CS
-          </span>
-          Clinic Smart
-        </p>
-        <ul className="space-y-1">
+        <div className="flex items-center justify-between gap-2 px-4 pt-3 md:mb-8 md:px-2 md:pt-2">
+          <p className="flex items-center gap-2.5 text-base font-semibold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-700 text-xs font-bold text-brand-100">
+              CS
+            </span>
+            Clinic Smart
+          </p>
+          <div className="text-brand-200 md:hidden">
+            <LogoutButton />
+          </div>
+        </div>
+        <ul className="flex gap-1 overflow-x-auto px-3 py-3 md:block md:space-y-0.5 md:overflow-visible md:p-0">
           {items.map((item) => {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
-              <li key={item.href}>
+              <li key={item.href} className="shrink-0">
                 <Link
                   href={item.href}
-                  className={`block rounded-md px-3 py-2 text-sm transition-colors ${
+                  aria-current={active ? 'page' : undefined}
+                  className={`block whitespace-nowrap rounded-lg px-3 py-2 text-sm transition-colors ${
                     active
-                      ? 'bg-brand-600 font-medium text-white shadow-sm'
-                      : 'text-brand-100 hover:bg-brand-800 hover:text-white'
+                      ? 'bg-brand-50 font-semibold text-brand-900'
+                      : 'text-brand-100/85 hover:bg-brand-800 hover:text-white'
                   }`}
                 >
                   {item.label}
@@ -46,10 +52,10 @@ export function Nav({
         </ul>
       </div>
 
-      <div className="space-y-1 border-t border-brand-800 pt-4">
-        <p className="px-2 text-sm font-medium text-white">{userName}</p>
-        <p className="px-2 text-xs text-brand-300">{ROLE_LABELS[role]}</p>
-        <div className="px-2 pt-1 text-brand-200">
+      <div className="hidden border-t border-brand-800 px-2 pt-4 md:block">
+        <p className="truncate text-sm font-medium text-white">{userName}</p>
+        <p className="text-xs text-brand-300">{ROLE_LABELS[role]}</p>
+        <div className="pt-2 text-brand-200">
           <LogoutButton />
         </div>
       </div>

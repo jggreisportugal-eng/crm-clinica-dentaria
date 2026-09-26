@@ -1,7 +1,7 @@
 import { requireProfile } from '@/lib/auth/require-role'
 import { ROLE_LABELS, type UserRole } from '@/lib/auth/nav-config'
 import { createClient } from '@/lib/supabase/server'
-import { KpiCard } from '@/components/kpi-card'
+import { KpiCard, KpiGroup } from '@/components/kpi-card'
 
 // Perfis que têm acesso a leads (Etapa 1.8 / policy leads_select) — usado
 // para decidir se mostramos o KPI de Novos Leads, em vez de mostrar um
@@ -17,6 +17,26 @@ const currency = new Intl.NumberFormat('pt-PT', {
   style: 'currency',
   currency: 'EUR',
 })
+
+const longDate = new Intl.DateTimeFormat('pt-PT', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'Europe/Lisbon',
+})
+
+function greeting(now: Date) {
+  const hour = Number(
+    new Intl.DateTimeFormat('pt-PT', {
+      hour: 'numeric',
+      hourCycle: 'h23',
+      timeZone: 'Europe/Lisbon',
+    }).format(now)
+  )
+  if (hour < 12) return 'Bom dia'
+  if (hour < 20) return 'Boa tarde'
+  return 'Boa noite'
+}
 
 export default async function DashboardPage() {
   const { user, profile } = await requireProfile()
@@ -91,30 +111,57 @@ export default async function DashboardPage() {
     todayFollowUps = today ?? 0
   }
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-6 p-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          {profile.full_name ?? user.email} · {ROLE_LABELS[profile.role]}
-        </p>
-      </div>
+  const now = new Date()
+  const todayLabel = longDate.format(now)
+  const firstName = profile.full_name?.split(' ')[0]
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <KpiCard label="Total de Pacientes" value={totalPatients ?? 0} />
-        {canSeeLeads && <KpiCard label="Novos Leads" value={newLeads} />}
-        {canSeeFunil && (
-          <>
-            <KpiCard label="Taxa de Conversão" value={`${conversionRate}%`} />
-            <KpiCard
-              label="Valor Potencial em Funil"
-              value={currency.format(potentialValue)}
-            />
-            <KpiCard label="Pendências" value={pendingTasks} />
-            <KpiCard label="Follow-ups Hoje" value={todayFollowUps} />
-          </>
+  return (
+    <div className="mx-auto max-w-5xl space-y-10 px-4 py-8 sm:px-8 sm:py-10">
+      <header>
+        <p className="text-sm text-gray-500">{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+          {firstName ? `${greeting(now)}, ${firstName}` : greeting(now)}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          {profile.full_name ? user.email : null}
+          {profile.full_name ? ' — ' : null}
+          {ROLE_LABELS[profile.role]}
+        </p>
+      </header>
+
+      <KpiGroup title="Pacientes e contactos">
+        <KpiCard label="Pacientes ativos" value={totalPatients ?? 0} />
+        {canSeeLeads && (
+          <KpiCard
+            label="Novos leads"
+            value={newLeads}
+            hint="Ainda sem primeiro contacto"
+          />
         )}
-      </div>
+        {canSeeFunil && (
+          <KpiCard
+            label="Follow-ups hoje"
+            value={todayFollowUps}
+            hint="Tarefas pendentes com data de hoje"
+          />
+        )}
+      </KpiGroup>
+
+      {canSeeFunil && (
+        <KpiGroup title="Funil de tratamentos">
+          <KpiCard
+            label="Taxa de conversão"
+            value={`${conversionRate}%`}
+            hint="Negócios ativos concluídos"
+          />
+          <KpiCard
+            label="Valor potencial em funil"
+            value={currency.format(potentialValue)}
+            hint="Soma dos negócios em aberto"
+          />
+          <KpiCard label="Tarefas pendentes" value={pendingTasks} />
+        </KpiGroup>
+      )}
     </div>
   )
 }
