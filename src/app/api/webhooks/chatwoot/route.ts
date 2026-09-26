@@ -38,6 +38,7 @@ interface ChatwootPayload {
   sender?: ChatwootContact & { type?: string }
   inbox?: { id?: number; name?: string }
   conversation?: ChatwootConversation
+  attachments?: { file_type?: string }[]
   // conversation_* (o próprio payload é a conversa)
   status?: string
   channel?: string
@@ -49,6 +50,25 @@ function validSignature(secret: string, timestamp: string, body: string, signatu
   const a = Buffer.from(signature)
   const b = Buffer.from(expected)
   return a.length === b.length && timingSafeEqual(a, b)
+}
+
+const ATTACHMENT_LABELS: Record<string, string> = {
+  audio: '[Áudio]',
+  image: '[Imagem]',
+  video: '[Vídeo]',
+  file: '[Ficheiro]',
+  location: '[Localização]',
+  contact: '[Contacto]',
+}
+
+// Áudios (incluindo as respostas por voz do agente), imagens, etc. chegam
+// sem content — só como anexo. Sem isto ficavam mensagens vazias no histórico.
+function messageContent(payload: ChatwootPayload) {
+  const text = payload.content?.trim()
+  const labels = (payload.attachments ?? []).map(
+    (a) => ATTACHMENT_LABELS[a.file_type ?? ''] ?? '[Anexo]'
+  )
+  return [labels.join(' '), text].filter(Boolean).join(' ') || null
 }
 
 function toDate(value: string | number | undefined) {
@@ -145,7 +165,7 @@ export async function POST(request: Request) {
           p_message_id: String(payload.id),
           p_direction: payload.message_type === 'incoming' ? 'inbound' : 'outbound',
           p_sender_label: payload.sender?.name ?? null,
-          p_content: payload.content ?? null,
+          p_content: messageContent(payload),
           p_sent_at: toDate(payload.created_at),
         }
       : {}),
