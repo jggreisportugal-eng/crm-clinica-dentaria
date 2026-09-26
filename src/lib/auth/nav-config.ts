@@ -31,6 +31,11 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['administrador', 'gestor', 'recepcao', 'comercial', 'profissional'],
   },
   {
+    href: '/tarefas',
+    label: 'Tarefas',
+    roles: ['administrador', 'gestor', 'recepcao', 'comercial'],
+  },
+  {
     href: '/pacientes',
     label: 'Pacientes',
     roles: ['administrador', 'gestor', 'recepcao', 'comercial'],
