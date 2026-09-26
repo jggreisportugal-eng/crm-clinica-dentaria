@@ -26,6 +26,8 @@ export interface PatientRow {
   communication_preferences: Record<string, boolean>
   consent_recorded_at: string | null
   active: boolean
+  last_interaction_at: string | null
+  chatwoot_conversation_link: string | null
 }
 
 export interface DealRef {
@@ -55,6 +57,12 @@ const SOURCES = [
 const currency = new Intl.NumberFormat('pt-PT', {
   style: 'currency',
   currency: 'EUR',
+})
+
+const dateTime = new Intl.DateTimeFormat('pt-PT', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  timeZone: 'Europe/Lisbon',
 })
 
 const inputClass =
@@ -604,6 +612,18 @@ export function PatientsBoard({
                   <td className="py-2 pr-2 font-medium">
                     {p.full_name}
                     {!p.active && <span className="ml-1 text-xs">(arquivado)</span>}
+                    {p.chatwoot_conversation_link && (
+                      <a
+                        href={p.chatwoot_conversation_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-0.5 block text-xs font-normal text-brand-700 underline"
+                      >
+                        Abrir conversa
+                        {p.last_interaction_at &&
+                          ` · ${dateTime.format(new Date(p.last_interaction_at))}`}
+                      </a>
+                    )}
                   </td>
                   <td className="py-2 pr-2">
                     <div>{p.phone ?? '—'}</div>
