@@ -10,6 +10,7 @@ export default function OnboardingPage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [accessCode, setAccessCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -21,7 +22,13 @@ export default function OnboardingPage() {
     const res = await fetch('/api/onboarding', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizationName, fullName, email, password }),
+      body: JSON.stringify({
+        organizationName,
+        fullName,
+        email,
+        password,
+        accessCode,
+      }),
     })
     const body = await res.json()
 
@@ -104,6 +111,19 @@ export default function OnboardingPage() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">
+            Código de acesso
+          </label>
+          <input
+            type="password"
+            required
+            value={accessCode}
+            onChange={(e) => setAccessCode(e.target.value)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
           />
         </div>

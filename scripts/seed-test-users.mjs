@@ -2,15 +2,17 @@
 // (service_role) — NÃO expor isto como formulário público: a escolha do
 // perfil (role) nunca deve ficar acessível ao próprio utilizador.
 //
-// Uso: node --env-file=.env.local scripts/seed-test-users.mjs
+// Uso: SEED_ORGANIZATION_ID=<uuid> node --env-file=.env.local scripts/seed-test-users.mjs
+// Só para ambientes de teste — nunca na organização de uma clínica real.
 
 import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const organizationId = process.env.SEED_ORGANIZATION_ID
 
-if (!url || !serviceRoleKey) {
-  console.error('Faltam NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY no ambiente.')
+if (!url || !serviceRoleKey || !organizationId) {
+  console.error('Faltam NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SEED_ORGANIZATION_ID no ambiente.')
   process.exit(1)
 }
 
@@ -33,7 +35,8 @@ for (const perfil of perfis) {
     email: perfil.email,
     password: TEST_PASSWORD,
     email_confirm: true,
-    user_metadata: { role: perfil.role, full_name: perfil.full_name },
+    app_metadata: { role: perfil.role, organization_id: organizationId },
+    user_metadata: { full_name: perfil.full_name },
   })
 
   if (error) {
