@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
+/* O CRM só tem tema claro (cartões e formulários bg-white). O bloco
+   prefers-color-scheme: dark do template do Next pintava o texto de
+   #ededed em sistemas em modo escuro — branco sobre branco nos formulários.
+   color-scheme: light mantém também os controlos nativos (date, select,
+   checkbox) em modo claro. */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -10,13 +16,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
