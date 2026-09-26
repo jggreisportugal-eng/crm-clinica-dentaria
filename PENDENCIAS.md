@@ -74,3 +74,23 @@ passa o `organization_id` dela própria.
 - Para 6.4, 6.5, 6.7: depende também da integração Chatwoot (ver acima)
 
 Assim que N8N estiver disponível, retomar direto na Etapa 6.1.
+
+## Formulário do site → CRM (lado do CRM pronto em 2026-09-26)
+
+A rota `POST /api/public/leads/[formId]` (commit 2d608fd) aceita envios do
+**browser** (JSON, CORS limitado a `site_forms.allowed_origins`). Foi pensada
+para a landing de teste em Lovable (demo.clinicsmart.cloud); o prompt para a
+ligar está em `docs/prompt-lovable-formulario.md`, **não aplicado** — a
+landing é só de apresentação.
+
+O site real (www.saudente.com) é **WordPress** (tema Dentalist) com
+formulários **Forminator** (campos `name-1`, `email-1`, `phone-1`,
+`select-1`, `textarea-1`, `consent-1`). O Forminator envia pela integração
+"Webhook" **a partir do servidor WordPress** (sem cabeçalho Origin), por isso
+falta, quando se avançar:
+
+- Modo servidor-a-servidor em `site_forms`: token secreto (no URL ou
+  cabeçalho) em vez da verificação de Origin.
+- Mapeamento dos campos do Forminator (`name-1` → nome, `select-1` →
+  interesse, `consent-1` → consentimento, …), confirmado com um envio real.
+- Configurar o webhook no Forminator (Integrações → Webhook).
