@@ -65,6 +65,10 @@ export interface ConversationIdentity {
   contactId: string | null
   phone: string | null
   contactName: string | null
+  // Referência opaca do fazer.ai a esta conversa ({{conversation_ref}}):
+  // é com ela que o CRM consegue, mais tarde, pôr a assistente a falar
+  // nesta conversa (lembretes de consulta).
+  conversationRef: string | null
 }
 
 function clean(value: unknown, max = 200) {
@@ -81,7 +85,24 @@ export function readIdentity(body: Record<string, unknown>): ConversationIdentit
     contactId: clean(body.contact_id, 40),
     phone: normalizePhone(clean(body.contact_phone, 40) ?? ''),
     contactName: clean(body.contact_name, 120),
+    conversationRef: clean(body.conversation_ref, 80),
   }
+}
+
+// Guarda o conversation_ref na conversa do CRM (a do webhook do Chatwoot)
+// sempre que chega um novo: é o que torna possível o lembrete pela
+// assistente nesta conversa.
+export async function rememberConversationRef(
+  { supabase, organizationId }: AgentContext,
+  identity: ConversationIdentity
+) {
+  if (!identity.conversationRef || !identity.conversationId) return
+  await supabase
+    .from('conversations')
+    .update({ fazer_conversation_ref: identity.conversationRef })
+    .eq('organization_id', organizationId)
+    .eq('chatwoot_conversation_id', identity.conversationId)
+    .or(`fazer_conversation_ref.is.null,fazer_conversation_ref.neq.${identity.conversationRef}`)
 }
 
 export function readText(body: Record<string, unknown>, field: string, max = 500) {

@@ -4,6 +4,7 @@ import {
   findPatient,
   formatLisbon,
   readIdentity,
+  rememberConversationRef,
 } from '@/lib/agent-api'
 import { FUNNEL_STAGE_LABELS, type FunnelStage } from '@/lib/funnel-stages'
 
@@ -17,7 +18,9 @@ export async function POST(request: Request) {
   if (ctx instanceof NextResponse) return ctx
 
   const body = await request.json().catch(() => ({}))
-  const patient = await findPatient(ctx, readIdentity(body))
+  const identity = readIdentity(body)
+  await rememberConversationRef(ctx, identity)
+  const patient = await findPatient(ctx, identity)
 
   if (!patient) {
     return NextResponse.json({

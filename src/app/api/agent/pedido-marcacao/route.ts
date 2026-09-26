@@ -5,6 +5,7 @@ import {
   findPatient,
   readIdentity,
   readText,
+  rememberConversationRef,
 } from '@/lib/agent-api'
 
 const TASK_TITLE = 'Pedido de marcação'
@@ -61,6 +62,9 @@ export async function POST(request: Request) {
     })
     patient = await findPatient(ctx, identity)
   }
+
+  // Depois do ingest acima: a conversa do CRM pode ter acabado de nascer.
+  await rememberConversationRef(ctx, identity)
 
   if (!patient) {
     return NextResponse.json(

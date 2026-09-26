@@ -4,6 +4,7 @@ import {
   findPatient,
   formatLisbon,
   readIdentity,
+  rememberConversationRef,
 } from '@/lib/agent-api'
 import {
   APPOINTMENT_STATUS_LABELS,
@@ -18,7 +19,9 @@ export async function POST(request: Request) {
   if (ctx instanceof NextResponse) return ctx
 
   const body = await request.json().catch(() => ({}))
-  const patient = await findPatient(ctx, readIdentity(body))
+  const identity = readIdentity(body)
+  await rememberConversationRef(ctx, identity)
+  const patient = await findPatient(ctx, identity)
 
   if (!patient) {
     return NextResponse.json({
