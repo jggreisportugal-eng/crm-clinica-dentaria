@@ -39,7 +39,9 @@ export const requireProfile = cache(async () => {
 export async function requireRole(allowed: UserRole[]) {
   const { profile } = await requireProfile()
 
-  if (!allowed.includes(profile.role)) {
+  // Conta desativada: nenhuma página nem server action passa daqui (o
+  // layout (app) mostra a mensagem de conta desativada no /dashboard).
+  if (!profile.active || !allowed.includes(profile.role)) {
     redirect('/dashboard')
   }
 
