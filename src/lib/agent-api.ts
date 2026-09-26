@@ -40,12 +40,15 @@ export async function authenticateAgent(
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('agent_api_keys')
-    .select('id, organization_id')
+    .select('id, organization_id, active')
     .eq('key_hash', hashKey(key))
-    .eq('active', true)
     .maybeSingle()
 
-  if (!data) {
+  if (!data?.active) {
+    // Só o prefixo (o mesmo que o ecrã Configuração mostra) — nunca a chave.
+    console.warn(
+      `[agent-api] chave ${data ? 'revogada' : 'desconhecida'}: ${key.slice(0, 10)}…`
+    )
     return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
   }
 
