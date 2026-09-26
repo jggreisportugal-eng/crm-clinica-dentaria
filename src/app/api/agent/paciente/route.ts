@@ -7,6 +7,8 @@ import {
 } from '@/lib/agent-api'
 import { FUNNEL_STAGE_LABELS, type FunnelStage } from '@/lib/funnel-stages'
 
+const BOOKING_TASK_PREFIX = 'Pedido de marcação'
+
 // Ferramenta procurar_paciente: o agente fica a saber se quem está a falar
 // já é paciente, o nome registado, a etapa comercial e a próxima consulta.
 // Minimização (RGPD): nada de e-mail, data de nascimento ou valores.
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
     })
   }
 
-  const [{ data: deal }, { data: next }, { count: pendingRequests }] =
+  const [{ data: deal }, { data: next }, { data: pendingRequests }] =
     await Promise.all([
       ctx.supabase
         .from('deals')
@@ -47,12 +49,21 @@ export async function POST(request: Request) {
         .maybeSingle<{ scheduled_at: string; professional: { full_name: string | null } | null }>(),
       ctx.supabase
         .from('tasks')
-        .select('id', { count: 'exact', head: true })
+        .select('title')
         .eq('organization_id', ctx.organizationId)
         .eq('patient_id', patient.id)
         .eq('status', 'pendente')
-        .ilike('title', 'Pedido de marcação%'),
+        .ilike('title', `${BOOKING_TASK_PREFIX}%`)
+        .order('created_at', { ascending: false })
+        .limit(5),
     ])
+
+  // O título da tarefa é "Pedido de marcação — <tratamento> — <nome>": o
+  // agente precisa de saber PARA QUEM é cada pedido (pode ser de um filho
+  // feito pelo mesmo WhatsApp), não só que existe um.
+  const pedidos = (pendingRequests ?? []).map((t) =>
+    t.title.replace(BOOKING_TASK_PREFIX, '').replace(/^\s*—\s*/, '')
+  )
 
   return NextResponse.json({
     encontrado: true,
@@ -62,6 +73,7 @@ export async function POST(request: Request) {
     proxima_consulta: next
       ? `${formatLisbon(next.scheduled_at)}${next.professional?.full_name ? ` com ${next.professional.full_name}` : ''}`
       : null,
-    pedido_marcacao_pendente: (pendingRequests ?? 0) > 0,
+    pedido_marcacao_pendente: pedidos.length > 0,
+    pedidos_pendentes: pedidos,
   })
 }
