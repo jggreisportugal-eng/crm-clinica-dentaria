@@ -3,7 +3,11 @@
 import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { normalizePhone } from '@/lib/phone'
-import { FUNNEL_STAGE_LABELS, type FunnelStage } from '@/lib/funnel-stages'
+import {
+  FUNNEL_STAGE_COLORS,
+  FUNNEL_STAGE_LABELS,
+  type FunnelStage,
+} from '@/lib/funnel-stages'
 import { PATIENT_COLUMNS } from '@/lib/patient-columns'
 
 export interface PatientRow {
@@ -321,7 +325,7 @@ function PatientForm({
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-brand-600 hover:bg-brand-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
         >
           {submitting ? 'A guardar…' : submitLabel}
         </button>
@@ -523,7 +527,7 @@ export function PatientsBoard({
               setCreating(true)
               setEditingId(null)
             }}
-            className="ml-auto rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white"
+            className="ml-auto rounded-md bg-brand-600 hover:bg-brand-700 px-3 py-1.5 text-sm font-medium text-white"
           >
             Novo paciente
           </button>
@@ -560,108 +564,114 @@ export function PatientsBoard({
         {filtered.length} paciente{filtered.length === 1 ? '' : 's'}
       </p>
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-gray-200 text-gray-600">
-            <th className="py-2">Nome</th>
-            <th className="py-2">Contacto</th>
-            <th className="py-2">Interesse</th>
-            <th className="py-2">Funil</th>
-            <th className="py-2">Responsável</th>
-            <th className="py-2">RGPD</th>
-            <th className="py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((p) => {
-            const stage = stageByPatient.get(p.id)
-            if (editingId === p.id) {
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+        <table className="data-table">
+          <thead>
+            <tr className="border-b border-gray-200 text-gray-600">
+              <th className="py-2">Nome</th>
+              <th className="py-2">Contacto</th>
+              <th className="py-2">Interesse</th>
+              <th className="py-2">Funil</th>
+              <th className="py-2">Responsável</th>
+              <th className="py-2">RGPD</th>
+              <th className="py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((p) => {
+              const stage = stageByPatient.get(p.id)
+              if (editingId === p.id) {
+                return (
+                  <tr key={p.id}>
+                    <td colSpan={7} className="py-2">
+                      <PatientForm
+                        initial={toFormValues(p)}
+                        users={users}
+                        submitLabel="Guardar alterações"
+                        submitting={submitting}
+                        onSubmit={(values) => handleUpdate(p, values)}
+                        onCancel={() => setEditingId(null)}
+                      />
+                    </td>
+                  </tr>
+                )
+              }
               return (
-                <tr key={p.id}>
-                  <td colSpan={7} className="py-2">
-                    <PatientForm
-                      initial={toFormValues(p)}
-                      users={users}
-                      submitLabel="Guardar alterações"
-                      submitting={submitting}
-                      onSubmit={(values) => handleUpdate(p, values)}
-                      onCancel={() => setEditingId(null)}
-                    />
+                <tr
+                  key={p.id}
+                  className={`border-b border-gray-100 align-top ${p.active ? '' : 'text-gray-400'}`}
+                >
+                  <td className="py-2 pr-2 font-medium">
+                    {p.full_name}
+                    {!p.active && <span className="ml-1 text-xs">(arquivado)</span>}
+                  </td>
+                  <td className="py-2 pr-2">
+                    <div>{p.phone ?? '—'}</div>
+                    <div className="text-xs text-gray-500">{p.email}</div>
+                  </td>
+                  <td className="py-2 pr-2">
+                    <div>{p.interest ?? '—'}</div>
+                    {p.estimated_value != null && (
+                      <div className="text-xs text-gray-500">
+                        {currency.format(p.estimated_value)}
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-2 pr-2">
+                    {stage ? (
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${FUNNEL_STAGE_COLORS[stage].badge}`}
+                      >
+                        {FUNNEL_STAGE_LABELS[stage]}
+                      </span>
+                    ) : canCreateDeals && p.active ? (
+                      <button
+                        onClick={() => createDeal(p)}
+                        className="text-xs text-gray-600 underline"
+                      >
+                        Adicionar ao funil
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-2">
+                    {p.responsible_user_id
+                      ? userName.get(p.responsible_user_id) ?? '—'
+                      : '—'}
+                  </td>
+                  <td className="py-2 pr-2 text-xs">
+                    {p.consent_communication ? 'Contacto ✓' : 'Contacto ✗'}
+                    <br />
+                    {p.consent_marketing ? 'Marketing ✓' : 'Marketing ✗'}
+                  </td>
+                  <td className="space-x-2 py-2 text-right whitespace-nowrap">
+                    {canEdit && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingId(p.id)
+                            setCreating(false)
+                          }}
+                          className="text-xs text-gray-600 underline"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => toggleActive(p)}
+                          className="text-xs text-gray-600 underline"
+                        >
+                          {p.active ? 'Arquivar' : 'Reativar'}
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               )
-            }
-            return (
-              <tr
-                key={p.id}
-                className={`border-b border-gray-100 align-top ${p.active ? '' : 'text-gray-400'}`}
-              >
-                <td className="py-2 pr-2 font-medium">
-                  {p.full_name}
-                  {!p.active && <span className="ml-1 text-xs">(arquivado)</span>}
-                </td>
-                <td className="py-2 pr-2">
-                  <div>{p.phone ?? '—'}</div>
-                  <div className="text-xs text-gray-500">{p.email}</div>
-                </td>
-                <td className="py-2 pr-2">
-                  <div>{p.interest ?? '—'}</div>
-                  {p.estimated_value != null && (
-                    <div className="text-xs text-gray-500">
-                      {currency.format(p.estimated_value)}
-                    </div>
-                  )}
-                </td>
-                <td className="py-2 pr-2">
-                  {stage ? (
-                    FUNNEL_STAGE_LABELS[stage]
-                  ) : canCreateDeals && p.active ? (
-                    <button
-                      onClick={() => createDeal(p)}
-                      className="text-xs text-gray-600 underline"
-                    >
-                      Adicionar ao funil
-                    </button>
-                  ) : (
-                    <span className="text-gray-400">—</span>
-                  )}
-                </td>
-                <td className="py-2 pr-2">
-                  {p.responsible_user_id
-                    ? userName.get(p.responsible_user_id) ?? '—'
-                    : '—'}
-                </td>
-                <td className="py-2 pr-2 text-xs">
-                  {p.consent_communication ? 'Contacto ✓' : 'Contacto ✗'}
-                  <br />
-                  {p.consent_marketing ? 'Marketing ✓' : 'Marketing ✗'}
-                </td>
-                <td className="space-x-2 py-2 text-right whitespace-nowrap">
-                  {canEdit && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setEditingId(p.id)
-                          setCreating(false)
-                        }}
-                        className="text-xs text-gray-600 underline"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => toggleActive(p)}
-                        className="text-xs text-gray-600 underline"
-                      >
-                        {p.active ? 'Arquivar' : 'Reativar'}
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

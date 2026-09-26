@@ -172,60 +172,62 @@ export function AgendaBoard({
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-brand-600 hover:bg-brand-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {submitting ? 'A marcar…' : 'Marcar consulta'}
           </button>
         </form>
       )}
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="py-2">Data/hora</th>
-            <th className="py-2">Paciente</th>
-            <th className="py-2">Profissional</th>
-            <th className="py-2">Estado</th>
-            <th className="py-2">Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          {appointments.map((a) => (
-            <tr key={a.id} className="border-b border-gray-100">
-              <td className="py-2">{dateFormat.format(new Date(a.scheduled_at))}</td>
-              <td className="py-2">{a.patient?.full_name ?? '—'}</td>
-              <td className="py-2">{a.professional?.full_name ?? '—'}</td>
-              <td className="py-2">
-                {canManage ? (
-                  <select
-                    value={a.status}
-                    onChange={(e) =>
-                      updateStatus(a.id, e.target.value as AppointmentStatus)
-                    }
-                    className="rounded-md border border-gray-300 px-2 py-1 text-xs"
-                  >
-                    {APPOINTMENT_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {APPOINTMENT_STATUS_LABELS[s]}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  APPOINTMENT_STATUS_LABELS[a.status]
-                )}
-              </td>
-              <td className="py-2 text-gray-500">{a.notes ?? '—'}</td>
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+        <table className="data-table">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="py-2">Data/hora</th>
+              <th className="py-2">Paciente</th>
+              <th className="py-2">Profissional</th>
+              <th className="py-2">Estado</th>
+              <th className="py-2">Notas</th>
             </tr>
-          ))}
-          {appointments.length === 0 && (
-            <tr>
-              <td colSpan={5} className="py-4 text-center text-gray-400">
-                Sem consultas.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {appointments.map((a) => (
+              <tr key={a.id} className="border-b border-gray-100">
+                <td className="py-2">{dateFormat.format(new Date(a.scheduled_at))}</td>
+                <td className="py-2">{a.patient?.full_name ?? '—'}</td>
+                <td className="py-2">{a.professional?.full_name ?? '—'}</td>
+                <td className="py-2">
+                  {canManage ? (
+                    <select
+                      value={a.status}
+                      onChange={(e) =>
+                        updateStatus(a.id, e.target.value as AppointmentStatus)
+                      }
+                      className="rounded-md border border-gray-300 px-2 py-1 text-xs"
+                    >
+                      {APPOINTMENT_STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {APPOINTMENT_STATUS_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    APPOINTMENT_STATUS_LABELS[a.status]
+                  )}
+                </td>
+                <td className="py-2 text-gray-500">{a.notes ?? '—'}</td>
+              </tr>
+            ))}
+            {appointments.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-4 text-center text-gray-400">
+                  Sem consultas.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

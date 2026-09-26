@@ -23,7 +23,7 @@ const initialState: ActionState = {}
 
 const inputClass = 'w-full rounded-md border border-gray-300 px-3 py-2 text-sm'
 const buttonClass =
-  'rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50'
+  'rounded-md bg-brand-600 hover:bg-brand-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50'
 const secondaryButtonClass =
   'rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-50'
 
@@ -177,22 +177,24 @@ export function UsersAdmin({ users, meId }: { users: UserRow[]; meId: string }) 
   return (
     <div className="space-y-6">
       <CreateUserForm />
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-gray-200 text-gray-600">
-            <th className="py-2">Nome</th>
-            <th className="py-2">E-mail</th>
-            <th className="py-2">Perfil</th>
-            <th className="py-2">Estado</th>
-            <th className="py-2">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <UserRowItem key={u.id} user={u} isMe={u.id === meId} />
-          ))}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+        <table className="data-table">
+          <thead>
+            <tr className="border-b border-gray-200 text-gray-600">
+              <th className="py-2">Nome</th>
+              <th className="py-2">E-mail</th>
+              <th className="py-2">Perfil</th>
+              <th className="py-2">Estado</th>
+              <th className="py-2">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <UserRowItem key={u.id} user={u} isMe={u.id === meId} />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

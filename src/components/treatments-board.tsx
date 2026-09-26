@@ -215,58 +215,60 @@ export function TreatmentsBoard({
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-brand-600 hover:bg-brand-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {submitting ? 'A criar…' : 'Criar tratamento'}
           </button>
         </form>
       )}
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="py-2">Paciente</th>
-            <th className="py-2">Tipo</th>
-            <th className="py-2">Profissional</th>
-            <th className="py-2">Orçamento</th>
-            <th className="py-2">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {treatments.map((t) => (
-            <tr key={t.id} className="border-b border-gray-100">
-              <td className="py-2">{t.patient?.full_name ?? '—'}</td>
-              <td className="py-2">{t.treatment_type}</td>
-              <td className="py-2">{t.professional?.full_name ?? '—'}</td>
-              <td className="py-2">
-                {t.budget != null ? currency.format(t.budget) : '—'}
-              </td>
-              <td className="py-2">
-                <select
-                  value={t.status}
-                  onChange={(e) =>
-                    updateStatus(t.id, e.target.value as TreatmentStatus)
-                  }
-                  className="rounded-md border border-gray-300 px-2 py-1 text-xs"
-                >
-                  {TREATMENT_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {TREATMENT_STATUS_LABELS[s]}
-                    </option>
-                  ))}
-                </select>
-              </td>
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+        <table className="data-table">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="py-2">Paciente</th>
+              <th className="py-2">Tipo</th>
+              <th className="py-2">Profissional</th>
+              <th className="py-2">Orçamento</th>
+              <th className="py-2">Estado</th>
             </tr>
-          ))}
-          {treatments.length === 0 && (
-            <tr>
-              <td colSpan={5} className="py-4 text-center text-gray-400">
-                Sem tratamentos.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {treatments.map((t) => (
+              <tr key={t.id} className="border-b border-gray-100">
+                <td className="py-2">{t.patient?.full_name ?? '—'}</td>
+                <td className="py-2">{t.treatment_type}</td>
+                <td className="py-2">{t.professional?.full_name ?? '—'}</td>
+                <td className="py-2">
+                  {t.budget != null ? currency.format(t.budget) : '—'}
+                </td>
+                <td className="py-2">
+                  <select
+                    value={t.status}
+                    onChange={(e) =>
+                      updateStatus(t.id, e.target.value as TreatmentStatus)
+                    }
+                    className="rounded-md border border-gray-300 px-2 py-1 text-xs"
+                  >
+                    {TREATMENT_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {TREATMENT_STATUS_LABELS[s]}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+            {treatments.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-4 text-center text-gray-400">
+                  Sem tratamentos.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

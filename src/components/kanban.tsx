@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FUNNEL_STAGES, FUNNEL_STAGE_LABELS, type FunnelStage } from '@/lib/funnel-stages'
+import {
+  FUNNEL_STAGES,
+  FUNNEL_STAGE_COLORS,
+  FUNNEL_STAGE_LABELS,
+  type FunnelStage,
+} from '@/lib/funnel-stages'
 
 export interface DealCard {
   id: string
@@ -65,10 +70,14 @@ export function Kanban({ initialDeals }: { initialDeals: DealCard[] }) {
                 if (dealId) moveDeal(dealId, stage)
                 setDraggingId(null)
               }}
-              className="flex w-64 shrink-0 flex-col rounded-lg bg-gray-100 p-2"
+              className="flex w-64 shrink-0 flex-col rounded-lg bg-slate-100 p-2"
             >
-              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {FUNNEL_STAGE_LABELS[stage]} · {stageDeals.length}
+              <p className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <span className={`h-2 w-2 rounded-full ${FUNNEL_STAGE_COLORS[stage].dot}`} />
+                {FUNNEL_STAGE_LABELS[stage]}
+                <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-gray-500">
+                  {stageDeals.length}
+                </span>
               </p>
               <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
                 {stageDeals.map((deal) => (
@@ -80,14 +89,14 @@ export function Kanban({ initialDeals }: { initialDeals: DealCard[] }) {
                       setDraggingId(deal.id)
                     }}
                     onDragEnd={() => setDraggingId(null)}
-                    className={`cursor-grab rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm active:cursor-grabbing ${
+                    className={`cursor-grab rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm transition hover:border-brand-300 hover:shadow active:cursor-grabbing ${
                       draggingId === deal.id ? 'opacity-50' : ''
                     }`}
                   >
                     <p className="font-medium text-gray-900">
                       {deal.patient?.full_name ?? 'Paciente sem nome'}
                     </p>
-                    <p className="mt-1 text-gray-600">
+                    <p className="mt-1 font-medium text-brand-700">
                       {deal.estimated_value != null
                         ? currency.format(deal.estimated_value)
                         : '—'}
