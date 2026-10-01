@@ -115,27 +115,10 @@ Falta:
   escolher a credencial Header Auth da clínica (a mesma dos lembretes:
   `Authorization: Bearer <chave da API do agente>`). Uma chamada por
   organização — para outra clínica, duplicar o nó HTTP com a credencial dela.
-- **Atualizar as instruções da integração "Generic" no fazer.ai** (hoje só
-  falam de lembretes de consulta, e o follow-up chega pelo mesmo webhook).
-  Texto proposto:
-
-  > Estes eventos vêm do CRM da clínica. Escreva ao paciente UMA mensagem
-  > curta em português de Portugal, sem se apresentar de novo se já falou com
-  > ele, trate-o pelo primeiro nome e não invente nada que não esteja no evento.
-  >
-  > Se o evento começa por "Lembrete de consulta": diga o dia, a hora e o
-  > profissional exatamente como vêm no evento e peça que confirme a presença
-  > respondendo à mensagem ou que diga se precisa de remarcar. Use o
-  > cumprimento da hora atual (Bom dia/Boa tarde/Boa noite). Quando o paciente
-  > responder, use a ferramenta responder_lembrete.
-  >
-  > Se o evento começa por "Follow-up de fim de semana": deseje um bom fim de
-  > semana e pergunte, num tom leve e sem pressão, se já tem alguma posição
-  > sobre o tratamento/orçamento ou se ficou alguma dúvida. Não mencione
-  > preços, descontos nem prazos de ofertas. Se o paciente quiser marcar, use
-  > as ferramentas de marcação habituais; se disser que não está interessado,
-  > agradeça e não insista.
-
+- ~~Instruções da integração "Generic" no fazer.ai~~ — feito em 2026-10-01:
+  a integração passou a chamar-se "CRM — lembretes de consulta e follow-ups"
+  e distingue os eventos pelo início do texto ("Lembrete de consulta" /
+  "Follow-up de fim de semana").
 - **Histórico na ficha do paciente**: cada envio fica em `activities`
   (`deal.weekend_followup`, com o canal; `deal.weekend_followup_stopped`
   quando para ao 3.º sem resposta), mas a ficha do paciente ainda não mostra
