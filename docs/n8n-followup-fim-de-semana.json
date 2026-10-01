@@ -1,0 +1,54 @@
+{
+  "name": "CRM — follow-up de fim de semana",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 16 * * 5"
+            }
+          ]
+        }
+      },
+      "name": "Sextas às 16:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm:3000/api/agent/followup-fim-de-semana",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "name": "Follow-up de fim de semana (CRM)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 0],
+      "notes": "Uma chamada por organização: credencial Header Auth com Authorization = Bearer <chave da API do agente da clínica>. Para outra clínica, duplicar este nó com a credencial dela."
+    }
+  ],
+  "connections": {
+    "Sextas às 16:00": {
+      "main": [
+        [
+          {
+            "node": "Follow-up de fim de semana (CRM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Lisbon"
+  }
+}
