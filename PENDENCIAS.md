@@ -110,16 +110,15 @@ janela e é preciso um template aprovado.
 
 Falta:
 
-- **Aplicar a migração** na base de dados da VPS.
-- **Importar o workflow** `docs/n8n-followup-fim-de-semana.json` no n8n e
-  escolher a credencial Header Auth da clínica (a mesma dos lembretes:
-  `Authorization: Bearer <chave da API do agente>`). Uma chamada por
-  organização — para outra clínica, duplicar o nó HTTP com a credencial dela.
+- ~~Migração~~ — aplicada no Supabase em 2026-10-01 (a base de dados do CRM
+  é o Supabase cloud, não a VPS).
+- ~~Workflow no n8n~~ — importado e ativo em 2026-10-01 ("CRM — follow-up de
+  fim de semana", credencial "Header Auth account"). Para outra clínica,
+  duplicar o nó HTTP com a credencial dela.
 - ~~Instruções da integração "Generic" no fazer.ai~~ — feito em 2026-10-01:
   a integração passou a chamar-se "CRM — lembretes de consulta e follow-ups"
   e distingue os eventos pelo início do texto ("Lembrete de consulta" /
   "Follow-up de fim de semana").
-- **Histórico na ficha do paciente**: cada envio fica em `activities`
-  (`deal.weekend_followup`, com o canal; `deal.weekend_followup_stopped`
-  quando para ao 3.º sem resposta), mas a ficha do paciente ainda não mostra
-  activities — falta essa vista.
+- ~~Histórico na ficha do paciente~~ — feito em 2026-10-02: botão
+  "Histórico" na lista de pacientes (função `patient_history`, migração
+  `20261002120000_patient_history.sql`, a aplicar no SQL Editor do Supabase).

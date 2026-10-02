@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { PatientHistory } from '@/components/patient-history'
 import { normalizePhone } from '@/lib/phone'
 import {
   FUNNEL_STAGE_COLORS,
@@ -371,6 +372,7 @@ export function PatientsBoard({
   const [creating, setCreating] = useState(false)
   const [addToFunnel, setAddToFunnel] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [historyId, setHistoryId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -604,89 +606,108 @@ export function PatientsBoard({
                   </tr>
                 )
               }
+              const historyOpen = historyId === p.id
               return (
-                <tr
-                  key={p.id}
-                  className={`border-b border-gray-100 align-top ${p.active ? '' : 'text-gray-400'}`}
-                >
-                  <td className="py-2 pr-2 font-medium">
-                    {p.full_name}
-                    {!p.active && <span className="ml-1 text-xs">(arquivado)</span>}
-                    {p.chatwoot_conversation_link && (
-                      <a
-                        href={p.chatwoot_conversation_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-0.5 block text-xs font-normal text-brand-700 underline"
-                      >
-                        Abrir conversa
-                        {p.last_interaction_at &&
-                          ` · ${dateTime.format(new Date(p.last_interaction_at))}`}
-                      </a>
-                    )}
-                  </td>
-                  <td className="py-2 pr-2">
-                    <div>{p.phone ?? '—'}</div>
-                    <div className="text-xs text-gray-500">{p.email}</div>
-                  </td>
-                  <td className="py-2 pr-2">
-                    <div>{p.interest ?? '—'}</div>
-                    {p.estimated_value != null && (
-                      <div className="text-xs text-gray-500">
-                        {currency.format(p.estimated_value)}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-2 pr-2">
-                    {stage ? (
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${FUNNEL_STAGE_COLORS[stage].badge}`}
-                      >
-                        {FUNNEL_STAGE_LABELS[stage]}
-                      </span>
-                    ) : canCreateDeals && p.active ? (
+                <Fragment key={p.id}>
+                  <tr
+                    className={`align-top ${historyOpen ? '' : 'border-b border-gray-100'} ${p.active ? '' : 'text-gray-400'}`}
+                  >
+                    <td className="py-2 pr-2 font-medium">
+                      {p.full_name}
+                      {!p.active && <span className="ml-1 text-xs">(arquivado)</span>}
+                      {p.chatwoot_conversation_link && (
+                        <a
+                          href={p.chatwoot_conversation_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-0.5 block text-xs font-normal text-brand-700 underline"
+                        >
+                          Abrir conversa
+                          {p.last_interaction_at &&
+                            ` · ${dateTime.format(new Date(p.last_interaction_at))}`}
+                        </a>
+                      )}
+                    </td>
+                    <td className="py-2 pr-2">
+                      <div>{p.phone ?? '—'}</div>
+                      <div className="text-xs text-gray-500">{p.email}</div>
+                    </td>
+                    <td className="py-2 pr-2">
+                      <div>{p.interest ?? '—'}</div>
+                      {p.estimated_value != null && (
+                        <div className="text-xs text-gray-500">
+                          {currency.format(p.estimated_value)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-2 pr-2">
+                      {stage ? (
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${FUNNEL_STAGE_COLORS[stage].badge}`}
+                        >
+                          {FUNNEL_STAGE_LABELS[stage]}
+                        </span>
+                      ) : canCreateDeals && p.active ? (
+                        <button
+                          onClick={() => createDeal(p)}
+                          className="text-xs text-gray-600 underline"
+                        >
+                          Adicionar ao funil
+                        </button>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="py-2 pr-2">
+                      {p.responsible_user_id
+                        ? userName.get(p.responsible_user_id) ?? '—'
+                        : '—'}
+                    </td>
+                    <td className="py-2 pr-2 text-xs">
+                      {p.consent_communication ? 'Contacto ✓' : 'Contacto ✗'}
+                      <br />
+                      {p.consent_marketing ? 'Marketing ✓' : 'Marketing ✗'}
+                    </td>
+                    <td className="space-x-2 py-2 text-right whitespace-nowrap">
                       <button
-                        onClick={() => createDeal(p)}
+                        onClick={() => setHistoryId(historyOpen ? null : p.id)}
+                        aria-expanded={historyOpen}
                         className="text-xs text-gray-600 underline"
                       >
-                        Adicionar ao funil
+                        {historyOpen ? 'Fechar histórico' : 'Histórico'}
                       </button>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="py-2 pr-2">
-                    {p.responsible_user_id
-                      ? userName.get(p.responsible_user_id) ?? '—'
-                      : '—'}
-                  </td>
-                  <td className="py-2 pr-2 text-xs">
-                    {p.consent_communication ? 'Contacto ✓' : 'Contacto ✗'}
-                    <br />
-                    {p.consent_marketing ? 'Marketing ✓' : 'Marketing ✗'}
-                  </td>
-                  <td className="space-x-2 py-2 text-right whitespace-nowrap">
-                    {canEdit && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setEditingId(p.id)
-                            setCreating(false)
-                          }}
-                          className="text-xs text-gray-600 underline"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => toggleActive(p)}
-                          className="text-xs text-gray-600 underline"
-                        >
-                          {p.active ? 'Arquivar' : 'Reativar'}
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
+                      {canEdit && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingId(p.id)
+                              setCreating(false)
+                            }}
+                            className="text-xs text-gray-600 underline"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => toggleActive(p)}
+                            className="text-xs text-gray-600 underline"
+                          >
+                            {p.active ? 'Arquivar' : 'Reativar'}
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                  {historyOpen && (
+                    <tr className="border-b border-gray-100">
+                      <td colSpan={7} className="bg-gray-50 px-4 py-3">
+                        <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-600 uppercase">
+                          Histórico de {p.full_name}
+                        </h3>
+                        <PatientHistory patientId={p.id} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               )
             })}
           </tbody>
